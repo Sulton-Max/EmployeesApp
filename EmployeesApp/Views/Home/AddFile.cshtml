@@ -1,0 +1,13 @@
+﻿@if((string)ViewData["Message"] != null)
+{
+    @if(ViewData["MessageType"] == "success")
+    {
+        <div class="alert alert-success">@ViewData["Message"]</div>
+    }
+    else
+    {
+        <div class="alert alert-danger">@ViewData["Message"]</div>
+    }
+}
+
+<a asp-action="Index">Back to Home</a>

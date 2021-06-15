@@ -1,0 +1,110 @@
+﻿@model IEnumerable<EmployeeVM>
+
+@{
+    ViewData["Title"] = "Home Page";
+
+    // For sorting
+    bool SortAscending = (bool)ViewData["SortAscending"];
+    string SearchValue = (string)ViewData["SearchValue"];
+    string SortColumn = (string)ViewData["SortColumn"];
+
+    // For pagination
+    int CurrentDataIndex = (int)ViewData["CurrentDataIndex"];
+    int TotalDataCount = (int)ViewData["TotalDataCount"];
+}
+
+<form asp-action="AddFile" method="post" enctype="multipart/form-data" style="border: 1px solid gray; border-radius: 20px; padding: 20px;">
+    <div class="form-group">
+        <label class="text-dark">Choose a file to process (.csv files only)</label>
+        <input type="file" name="upload" />
+    </div>
+    <button class="btn btn-primary" type="submit" style="align-self:center;">Submit</button>
+</form>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                <a asp-action="Sort" asp-route-searchvalue=@SearchValue asp-route-sortcolumn="PayrollNumber" asp-route-sortascending="@SortAscending" class="text-dark">PayrollNumber</a>
+            </th>
+            <th>
+                <a asp-action="Sort" asp-route-searchvalue=@SearchValue asp-route-sortcolumn="Forename" asp-route-sortascending="@SortAscending" class="text-dark">Forename</a>
+            </th>
+            <th>
+                <a asp-action="Sort" asp-route-searchvalue=@SearchValue asp-route-sortcolumn="Surname" asp-route-sortascending="@SortAscending" class="text-dark">Surname</a>
+            </th>
+            <th>
+                <a asp-action="Sort" asp-route-searchvalue=@SearchValue asp-route-sortcolumn="DateOfBirth" asp-route-sortascending="@SortAscending" class="text-dark">DateOfBirth</a>
+            </th>
+            <th>
+                <a asp-action="Sort" asp-route-searchvalue=@SearchValue asp-route-sortcolumn="Telephone" asp-route-sortascending="@SortAscending" class="text-dark">Telephone</a>
+            </th>
+            <th>
+                <a asp-action="Sort" asp-route-searchvalue=@SearchValue asp-route-sortcolumn="EmailHome" asp-route-sortascending="@SortAscending" class="text-dark">EmailHome</a>
+            </th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (EmployeeVM employee in Model)
+        {
+            <tr>
+                <th>@employee.PayrollNumber</th>
+                <td>@employee.Forename</td>
+                <td>@employee.Surname</td>
+                <td>@employee.DateOfBirth</td>
+                <td>@employee.Telephone</td>
+                <td>@employee.EmailHome</td>
+                <td>
+                    <button asp-action="Edit" asp-route-id="@employee.PayrollNumber" class="btn btn-primary">Edit</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+
+    <tfoot>
+        <tr>
+            <th>
+                <a class="text-dark">PayrollNumber</a>
+            </th>
+            <th>
+                <a class="text-dark">Forename</a>
+            </th>
+            <th>
+                <a class="text-dark">Surname</a>
+            </th>
+            <th>
+                <a class="text-dark">DateOfBirth</a>
+            </th>
+            <th>
+                <a class="text-dark">Telephone</a>
+            </th>
+            <th>
+                <a class="text-dark">EmailHome</a>
+            </th>
+            <th>Actions</th>
+        </tr>
+    </tfoot>
+</table>
+
+<div container style="display:flex; flex-direction:row;">
+
+    @if ((CurrentDataIndex - 10) > 0)
+    {
+        <button class="btn btn-primary" asp-action="GetPrev" asp-route-currentindex="@CurrentDataIndex" >Prev</button>
+    }
+    else
+    {
+        <button class="btn btn-primary" disabled>Prev</button>
+    }
+    <h5 style="margin: 20px;">@CurrentDataIndex/@TotalDataCount</h5>
+    @if ((CurrentDataIndex + 10) < TotalDataCount)
+    {
+        <button class="btn btn-primary" asp-action="GetNext" asp-route-currentindex="@CurrentDataIndex">Next</button>
+    }
+    else
+    {
+        <button class="btn btn-primary" disabled>Next</button>
+    }
+</div>
