@@ -4,15 +4,22 @@
     ViewData["Title"] = "Home Page";
 
     // For sorting
-    bool SortAscending = (bool)ViewData["SortAscending"];
     string SearchValue = (string)ViewData["SearchValue"];
     string SortColumn = (string)ViewData["SortColumn"];
+    bool SortAscending = (bool)ViewData["SortAscending"];
 
     // For pagination
     int CurrentDataIndex = (int)ViewData["CurrentDataIndex"];
     int TotalDataCount = (int)ViewData["TotalDataCount"];
+
+    EmployeeDM emp = null;
+    if ((bool)ViewData["IsEditMode"] == true)
+        emp = ViewData["Employee"] as EmployeeDM;
 }
 
+@await Html.PartialAsync("_ValidationScriptsPartial")
+
+<!-- FILE SUBMIT AREA -->
 <form asp-action="AddFile" method="post" enctype="multipart/form-data" style="border: 1px solid gray; border-radius: 20px; padding: 20px;">
     <div class="form-group">
         <label class="text-dark">Choose a file to process (.csv files only)</label>
@@ -21,26 +28,145 @@
     <button class="btn btn-primary" type="submit" style="align-self:center;">Submit</button>
 </form>
 
+<!-- EDIT AREA -->
+@if ((bool)ViewData["IsEditMode"] == true)
+{
+    @await Html.PartialAsync("_Edit", emp, ViewData);
+
+    @*<form asp-action="Edit" method="post" style="margin-bottom: 40px;">
+            <div class="form-group">
+                <label asp-for="@emp.PayrollNumber"></label>
+                <input asp-for="@emp.PayrollNumber" class="form-control" />
+                <span asp-validation-for="@emp.PayrollNumber" />
+            </div>
+            <div class="form-group">
+                <label asp-for="@emp.Forename"></label>
+                <input asp-for="@emp.Forename" class="form-control" />
+                <span asp-validation-for="@emp.Forename" />
+            </div>
+            <div class="form-group">
+                <label asp-for="@emp.Surname"></label>
+                <input asp-for="@emp.Surname" class="form-control" />
+                <span asp-validation-for="@emp.Surname" />
+            </div>
+            <div class="form-group">
+                <label asp-for="@emp.DateOfBirth"></label>
+                <input asp-for="@emp.DateOfBirth" class="form-control" />
+                <span asp-validation-for="@emp.DateOfBirth" />
+            </div>
+            <div class="form-group">
+                <label asp-for="@emp.Telephone"></label>
+                <input asp-for="@emp.Telephone" class="form-control" />
+                <span asp-validation-for="@emp.Telephone" />
+            </div>
+            <div class="form-group">
+                <label asp-for="@emp.Mobile"></label>
+                <input asp-for="@emp.Mobile" class="form-control" />
+                <span asp-validation-for="@emp.Mobile" />
+            </div>
+            <div class="form-group">
+                <label asp-for="@emp.Address"></label>
+                <input asp-for="@emp.Address" class="form-control" />
+                <span asp-validation-for="@emp.Address" />
+            </div>
+            <div class="form-group">
+                <label asp-for="@emp.Address2"></label>
+                <input asp-for="@emp.Address2" class="form-control" />
+                <span asp-validation-for="@emp.Address2" />
+            </div>
+            <div class="form-group">
+                <label asp-for="@emp.Postcode"></label>
+                <input asp-for="@emp.Postcode" class="form-control" />
+                <span asp-validation-for="@emp.Postcode" />
+            </div>
+            <div class="form-group">
+                <label asp-for="@emp.EmailHome"></label>
+                <input asp-for="@emp.EmailHome" class="form-control" />
+                <span asp-validation-for="@emp.EmailHome" />
+            </div>
+            <div class="form-group">
+                <label asp-for="@emp.StartDate"></label>
+                <input asp-for="@emp.StartDate" class="form-control" />
+                <span asp-validation-for="@emp.StartDate" />
+            </div>
+
+            <button type="submit" class="btn btn-primary"
+                    asp-route-act="save"
+                    asp-route-sVal=@SearchValue
+                    asp-route-sortcolumn="EmailHome"
+                    asp-route-sortascending=@SortAscending
+                    asp-route-currentindex=@CurrentDataIndex>
+                Save
+            </button>
+
+            <button type="submit" class="btn btn-secondary"
+                    asp-route-act="cancel"
+                    asp-route-sVal=@SearchValue
+                    asp-route-sortcolumn="EmailHome"
+                    asp-route-sortascending=@SortAscending
+                    asp-route-currentindex=@CurrentDataIndex>
+                Cancel
+            </button>
+
+            <button type="submit" class="btn btn-danger"
+                    asp-route-act="cancel"
+                    asp-route-sVal=@SearchValue
+                    asp-route-sortcolumn="EmailHome"
+                    asp-route-sortascending=@SortAscending
+                    asp-route-currentindex=@CurrentDataIndex>
+                Delete
+            </button>
+
+        </form>*@
+
+
+}
+
+<!-- EMPLOYEE LIST AREA -->
 <table class="table">
     <thead>
         <tr>
             <th>
-                <a asp-action="Sort" asp-route-searchvalue=@SearchValue asp-route-sortcolumn="PayrollNumber" asp-route-sortascending="@SortAscending" class="text-dark">PayrollNumber</a>
+                <a asp-action="Sort" class="text-dark"
+                   asp-route-sVal=@SearchValue
+                   asp-route-sCol="PayrollNumber"
+                   asp-route-sAsc=@SortAscending
+                   asp-route-cIdx=@CurrentDataIndex>PayrollNumber</a>
             </th>
             <th>
-                <a asp-action="Sort" asp-route-searchvalue=@SearchValue asp-route-sortcolumn="Forename" asp-route-sortascending="@SortAscending" class="text-dark">Forename</a>
+                <a asp-action="Sort" class="text-dark"
+                   asp-route-sVal=@SearchValue
+                   asp-route-sCol="Forename"
+                   asp-route-sAsc=@SortAscending
+                   asp-route-cIdx=@CurrentDataIndex>Forename</a>
             </th>
             <th>
-                <a asp-action="Sort" asp-route-searchvalue=@SearchValue asp-route-sortcolumn="Surname" asp-route-sortascending="@SortAscending" class="text-dark">Surname</a>
+                <a asp-action="Sort" class="text-dark"
+                   asp-route-sVal=@SearchValue
+                   asp-route-sCol="Surname"
+                   asp-route-sAsc=@SortAscending
+                   asp-route-cIdx=@CurrentDataIndex>Surname</a>
             </th>
             <th>
-                <a asp-action="Sort" asp-route-searchvalue=@SearchValue asp-route-sortcolumn="DateOfBirth" asp-route-sortascending="@SortAscending" class="text-dark">DateOfBirth</a>
+                <a asp-action="Sort" class="text-dark"
+                   asp-route-sVal=@SearchValue
+                   asp-route-sCol="DateOfBirth"
+                   asp-route-sAsc=@SortAscending
+                   asp-route-cIdx=@CurrentDataIndex>DateOfBirth</a>
             </th>
             <th>
-                <a asp-action="Sort" asp-route-searchvalue=@SearchValue asp-route-sortcolumn="Telephone" asp-route-sortascending="@SortAscending" class="text-dark">Telephone</a>
+                <a asp-action="Sort" class="text-dark"
+                   asp-route-sVal=@SearchValue
+                   asp-route-sCol="Telephone"
+                   asp-route-sAsc=@SortAscending
+                   asp-route-cIdx=@CurrentDataIndex>Telephone</a>
             </th>
             <th>
-                <a asp-action="Sort" asp-route-searchvalue=@SearchValue asp-route-sortcolumn="EmailHome" asp-route-sortascending="@SortAscending" class="text-dark">EmailHome</a>
+                <a asp-action="Sort" class="text-dark"
+                   asp-route-sVal=@SearchValue
+                   asp-route-sCol="EmailHome"
+                   asp-route-sAsc=@SortAscending
+                   asp-route-cIdx=@CurrentDataIndex>EmailHome</a>
             </th>
             <th>Actions</th>
         </tr>
@@ -57,42 +183,44 @@
                 <td>@employee.Telephone</td>
                 <td>@employee.EmailHome</td>
                 <td>
-                    <button asp-action="Edit" asp-route-id="@employee.PayrollNumber" class="btn btn-primary">Edit</button>
+                    <form method="get" asp-action="Edit"
+                          asp-route-id="@employee.PayrollNumber"
+                          asp-route-sval=@SearchValue
+                          asp-route-scol=@SortColumn
+                          asp-route-sasc=@SortAscending
+                          asp-route-cIdx=@CurrentDataIndex>
+                        <button type="submit" class="btn btn-primary">Eidt</button>
+                    </form>
                 </td>
             </tr>
         }
     </tbody>
-
     <tfoot>
         <tr>
-            <th>
-                <a class="text-dark">PayrollNumber</a>
-            </th>
-            <th>
-                <a class="text-dark">Forename</a>
-            </th>
-            <th>
-                <a class="text-dark">Surname</a>
-            </th>
-            <th>
-                <a class="text-dark">DateOfBirth</a>
-            </th>
-            <th>
-                <a class="text-dark">Telephone</a>
-            </th>
-            <th>
-                <a class="text-dark">EmailHome</a>
-            </th>
+            <th>PayrollNumber</th>
+            <th>Forename</th>
+            <th>Surname</th>
+            <th>DateOfBirth</th>
+            <th>Telephone</th>
+            <th>EmailHome</th>
             <th>Actions</th>
         </tr>
     </tfoot>
 </table>
 
-<div container style="display:flex; flex-direction:row;">
+<!-- PAGINATION AREA -->
+<div container style="display:flex; flex-direction:row; margin-bottom: 40px;">
 
     @if ((CurrentDataIndex - 10) > 0)
     {
-        <button class="btn btn-primary" asp-action="GetPrev" asp-route-currentindex="@CurrentDataIndex" >Prev</button>
+        <button class="btn btn-primary" asp-action="Pageniation"
+                asp-route-act="Prev"
+                asp-route-sVal=@SearchValue
+                asp-route-sCol=@SortColumn
+                asp-route-sAsc=@SortAscending
+                asp-route-cIdx=@CurrentDataIndex>
+            Prev
+        </button>
     }
     else
     {
@@ -101,7 +229,14 @@
     <h5 style="margin: 20px;">@CurrentDataIndex/@TotalDataCount</h5>
     @if ((CurrentDataIndex + 10) < TotalDataCount)
     {
-        <button class="btn btn-primary" asp-action="GetNext" asp-route-currentindex="@CurrentDataIndex">Next</button>
+        <button class="btn btn-primary" asp-action="Pagination"
+                asp-route-act ="Next"
+                asp-route-sVal=@SearchValue
+                asp-route-sCol=@SortColumn
+                asp-route-sAsc=@SortAscending
+                asp-route-cIdx=@CurrentDataIndex>
+            Next
+        </button>
     }
     else
     {

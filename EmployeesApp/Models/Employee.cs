@@ -15,6 +15,7 @@ namespace EmployeesApp.Models
     {
         [Key]
         public string PayrollNumber { get; set; }
+        [StringLength(20, ErrorMessage = "Forename can't be longer than 20 chars")]
         public string Forename { get; set; }
         public string Surname { get; set; }
         public DateTime DateOfBirth { get; set; }
@@ -43,7 +44,7 @@ namespace EmployeesApp.Models
             StartDate = sd;
         }
 
-        public EmployeeDM(EmployeeCSVM csvm)
+        public EmployeeDM(EmployeeCSBM csvm)
         {
             PayrollNumber = csvm.PayrollNumber;
             Forename = csvm.Forename;
@@ -56,6 +57,20 @@ namespace EmployeesApp.Models
             Postcode = csvm.Postcode;
             EmailHome = csvm.EmailHome;
             StartDate = DateTime.Parse(csvm.StartDate);
+        }
+
+        public void Change(EmployeeDM emp)
+        {
+            Forename = emp.Forename;
+            Surname = emp.Surname;
+            DateOfBirth = emp.DateOfBirth;
+            Telephone = emp.Telephone;
+            Mobile = emp.Mobile;
+            Address = emp.Address;
+            Address2 = emp.Address2;
+            Postcode = emp.Postcode;
+            EmailHome = emp.EmailHome;
+            StartDate = emp.StartDate;
         }
     }
 
@@ -91,7 +106,7 @@ namespace EmployeesApp.Models
     /// <summary>
     /// Class for Employee CSV Model, all properties are string
     /// </summary>
-    public class EmployeeCSVM
+    public class EmployeeCSBM
     {
         [CsvHelper.Configuration.Attributes.Index(0)]
         public string PayrollNumber { get; set; }
@@ -160,7 +175,7 @@ namespace EmployeesApp.Models
     /// </summary>
     public class EmployeesAM
     {
-        public EmployeeDbContext EmployeesDB = new EmployeeDbContext();
+        //public EmployeeDbContext EmployeesDB = new EmployeeDbContext();
 
         /// <summary>
         /// Returns all employees in EmployeeVM type
@@ -168,24 +183,47 @@ namespace EmployeesApp.Models
         /// <returns>List of EmployeeVM objects</returns>
         public List<EmployeeVM> GetAll()
         {
+            using EmployeeDbContext EmployeesDB = new EmployeeDbContext();
             List<EmployeeVM> list = new List<EmployeeVM>();
             foreach (EmployeeDM employee in EmployeesDB.Employees)
                 list.Add((EmployeeVM)employee);
             return list;
         }
 
+        public EmployeeDM Get(string id)
+        {
+            using EmployeeDbContext EmployeesDB = new EmployeeDbContext();
+            return EmployeesDB.Employees.Where(employee => employee.PayrollNumber.Equals(id)).FirstOrDefault();
+        }
+
         public int Add(List<EmployeeDM> employees)
         {
+            using EmployeeDbContext EmployeesDB = new EmployeeDbContext();
             int affectedRows = 0;
             // Adding objects after checking
             foreach (EmployeeDM employee in employees)
-                if (EmployeesDB.Employees.Where(employee => employee.PayrollNumber == employee.PayrollNumber).FirstOrDefault() == null)
+                if (EmployeesDB.Employees.Where(emp => emp.PayrollNumber == employee.PayrollNumber).FirstOrDefault() == null)
                 {
                     affectedRows++;
                     EmployeesDB.Add(employee);
                 }
             EmployeesDB.SaveChanges();
             return affectedRows;
+        }
+
+        internal void Edit(EmployeeDM emp)
+        {
+            using EmployeeDbContext EmployeesDB = new EmployeeDbContext();
+            EmployeeDM employee = EmployeesDB.Employees.FirstOrDefault(employee => employee.PayrollNumber == emp.PayrollNumber);
+            employee.Change(emp);
+            EmployeesDB.SaveChanges();
+        }
+
+        public void Delete(EmployeeDM emp)
+        {
+            using EmployeeDbContext EmployeesDB = new EmployeeDbContext();
+            EmployeesDB.Remove(emp);
+            EmployeesDB.SaveChanges();
         }
     }
 

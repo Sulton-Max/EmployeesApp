@@ -35,7 +35,7 @@ namespace EmployeesApp.Controllers
                 // Stream to read the file
                 using var fileStream = File.OpenText(path);
                 using var csvStream = new CsvReader(fileStream, config);
-                IEnumerable<EmployeeCSVM> records = csvStream.GetRecords<EmployeeCSVM>();
+                IEnumerable<EmployeeCSBM> records = csvStream.GetRecords<EmployeeCSBM>();
                 var employeesCSVMs = records?.ToList();
 
                 // Check if parsing was successfull and are there any objects parsed
@@ -46,7 +46,7 @@ namespace EmployeesApp.Controllers
 
                     // Convert only valid CVS models to Domain models
                     List<EmployeeDM> employees = new List<EmployeeDM>();
-                    foreach (EmployeeCSVM cvsm in employeesCSVMs)
+                    foreach (EmployeeCSBM cvsm in employeesCSVMs)
                         if (cvsm.IsValid())
                             employees.Add(new EmployeeDM(cvsm));
 

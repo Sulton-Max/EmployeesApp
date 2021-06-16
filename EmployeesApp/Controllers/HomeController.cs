@@ -27,17 +27,8 @@ namespace EmployeesApp.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            List<EmployeeVM> employees = _empAM.GetAll();
-
-            // For Sorting
-            ViewData["SortAscending"] = true;
-            ViewData["SearchValue"] = "";
-            ViewData["SortColumn"] = "";
-
-            // For pagination
-            ViewData["CurrentDataIndex"] = (employees.Count() > 10) ? 10 : employees.Count();
-            ViewData["TotalDataCount"] = employees.Count();
-
+            // Show the whole list
+            List<EmployeeVM> employees = GetData("", "", true, 10);
             return View(employees);
         }
 
@@ -64,7 +55,7 @@ namespace EmployeesApp.Controllers
                     int rowsCount = _empAM.Add(employees);
                     ViewData["Message"] = $"{rowsCount} Rows affected";
                     ViewData["MessageType"] = "success";
-                    return View();
+                    return View("State");
                 }
                 else
                 {
@@ -77,47 +68,107 @@ namespace EmployeesApp.Controllers
                 ViewData["Message"] = "Please upload a file";
                 ViewData["MessageType"] = "alert";
             }
-            return View();
+            return View("State");
         }
 
-        // Editing 
         [HttpGet]
-        public 
-
-        // Sorting
-        [HttpGet]
-        public IActionResult Sort(string searchValue, string sortColumn, bool sortAscending)
+        public IActionResult Edit(string id, string sVal, string sCol, bool sAsc, int cIdx)
         {
-            return View("Index", SortingFunction(searchValue, sortColumn, sortAscending));
+            // Get the data by id to edit
+            EmployeeDM employee = _empAM.Get(id);
+            ViewData["Employee"] = employee;
+
+            // Show the whole list
+            List<EmployeeVM> employees = GetData(sVal, sCol, sAsc, cIdx);
+            SetViewDataFunction(sVal, sCol, sAsc, employees.Count(), cIdx);
+            return View("Index", employees);
         }
 
+        [HttpPost]
+        public IActionResult Edit(string act, string sVal, string sCol, bool sAsc, int cIdx, EmployeeDM emp = null)
+        {
+            switch (act.ToLower())
+            {
+                case "save":
+                    {
+                        if (emp != null)
+                            _empAM.Edit(emp);
+                        ViewData["Message"] = $"{1} Row updated";
+                        ViewData["MessageType"] = "success";
+                        return View("State");
+                    }
+                case "delete":
+                    {
+                        if (emp != null)
+                            _empAM.Delete(emp);
+                        ViewData["Message"] = $"{1} Row affected";
+                        ViewData["MessageType"] = "success";
+                        return View("State");
+                    }
+                default: break;
+            }
+
+            // Show the whole list
+            List<EmployeeVM> employees = GetData(sVal, sCol, sAsc, cIdx);
+            SetViewDataFunction(sVal, sCol, sAsc, employees.Count(), cIdx);
+            return View("Index", employees);
+        }
 
         [HttpGet]
-        public IActionResult GetNext()
+        public IActionResult Sort(string sVal, string sCol, bool sAsc, int cIdx)
         {
+            // Show the whole list
+            List<EmployeeVM> employees = GetData(sVal, sCol, sAsc, cIdx);
+            SetViewDataFunction(sVal, sCol, sAsc, employees.Count(), cIdx);
+            return View("Index", employees);
+        }
+
+        [HttpGet]
+        public IActionResult Pagination(string act, string sVal, string sCol, bool sAsc, int cIdx)
+        {
+            List<EmployeeVM> employees = GetDataSortedByKey(sVal);  // Get all searched data sorted by key
+            employees = PaginationFunction(cIdx, employees);        // Get the data with current Index                         
+            employees = SortingFunction(sCol, sAsc, employees);     // Sort data by column
+
+            SetViewDataFunction(sVal, sCol, sAsc, employees.Count(), cIdx);
             return View("Index");
         }
 
-        private List<EmployeeVM> SortingFunction(string searchValue, string sortColumn, bool sortAscending)
+        public List<EmployeeVM> GetData(string sVal, string sCol, bool sAsc, int cIdx)
         {
-            // Getting all employees
-            List<EmployeeVM> employees = _empAM.GetAll();
+            if (cIdx == 0)
+                cIdx = 10;
+            List<EmployeeVM> employees = GetDataSortedByKey(sVal);  // Get all searched data sorted by key
+            employees = PaginationFunction(cIdx, employees);        // Get the data with current Index                         
+            employees = SortingFunction(sCol, sAsc, employees);     // Sort data by column
+            SetViewDataFunction(sVal, sCol, sAsc, employees.Count(), ((employees.Count > 10) ? cIdx : employees.Count()));
+            return employees;
+        }
 
-            // Filtering
-            if (searchValue != null && searchValue != string.Empty)
-            {
-                string searchWord = searchValue.ToLower();
-                employees = employees.Where(employee =>
-                (employee.PayrollNumber.ToLower().Contains(searchWord) ||
-                    employee.Forename.ToLower().Contains(searchWord) ||
-                    employee.Surname.ToLower().Contains(searchWord) ||
-                    employee.Telephone.ToLower().Contains(searchWord))).ToList();
-            }
+        private List<EmployeeVM> GetDataSortedByKey(string sVal)
+        {
+            // Get searched data if search value is not null
+            List<EmployeeVM> employees = _empAM.GetAll();
+            if (sVal != null && sVal != string.Empty)
+                employees = _empAM.GetAll().Where(employee =>
+                    (employee.PayrollNumber.ToLower().Contains(sVal) ||
+                        employee.Forename.ToLower().Contains(sVal) ||
+                        employee.Surname.ToLower().Contains(sVal) ||
+                        employee.Telephone.ToLower().Contains(sVal))).ToList();
+            // Get data sorted by key
+            employees = employees.OrderBy(employee => employee.PayrollNumber).ToList();
+            return employees;
+        }
+
+        private List<EmployeeVM> SortingFunction(string sCol, bool sAsc, List<EmployeeVM> employees)
+        {
+            // Correcting the sort column value
+            sCol = (sCol == null) ? "payrollnumber" : sCol;
 
             // Sorting by Column
-            if (sortAscending)
+            if (sAsc)
             {
-                employees = sortColumn.ToLower() switch
+                employees = sCol.ToLower() switch
                 {
                     "payrollnumber" => employees.OrderBy(employee => employee.PayrollNumber).ToList(),
                     "forename" => employees.OrderBy(employee => employee.Forename).ToList(),
@@ -130,7 +181,7 @@ namespace EmployeesApp.Controllers
             }
             else
             {
-                employees = sortColumn.ToLower() switch
+                employees = sCol.ToLower() switch
                 {
                     "payrollnumber" => employees.OrderByDescending(employee => employee.PayrollNumber).ToList(),
                     "forename" => employees.OrderByDescending(employee => employee.Forename).ToList(),
@@ -141,13 +192,29 @@ namespace EmployeesApp.Controllers
                     _ => employees.OrderByDescending(employee => employee.PayrollNumber).ToList()
                 };
             }
-
-            // Saving searching and sorting values
-            ViewData["SortAscending"] = !sortAscending;
-            ViewData["SearchValue"] = (searchValue != null) ? searchValue : "";
-            ViewData["SortColumn"] = sortColumn;
-
             return employees;
+        }
+
+        private List<EmployeeVM> PaginationFunction(int cIdx, List<EmployeeVM> employees)
+        {
+            int skippedCount = (cIdx > 10) ? (cIdx - 10) : 0;
+            employees.Skip(skippedCount).Take(10);
+            return employees;
+        }
+
+        private void SetViewDataFunction(string sVal, string sCol, bool sAsc, int tCnt, int cIdx, bool iEdit = false)
+        {
+            // For Sorting
+            ViewData["SearchValue"] = sVal;
+            ViewData["SortColumn"] = sCol;
+            ViewData["SortAscending"] = sAsc;
+
+            // For pagination
+            ViewData["TotalDataCount"] = tCnt;
+            ViewData["CurrentDataIndex"] = cIdx;
+
+            // For editing 
+            ViewData["IsEditMode"] = iEdit;
         }
 
         public IActionResult Privacy()

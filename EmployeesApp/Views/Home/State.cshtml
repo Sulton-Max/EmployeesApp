@@ -1,6 +1,6 @@
 ﻿@if((string)ViewData["Message"] != null)
 {
-    @if(ViewData["MessageType"] == "success")
+    @if((string)ViewData["MessageType"] == "success")
     {
         <div class="alert alert-success">@ViewData["Message"]</div>
     }

@@ -1,0 +1,101 @@
+﻿@model EmployeeDM
+
+@{ 
+    // For sorting
+    string SearchValue = (string)ViewData["SearchValue"];
+    string SortColumn = (string)ViewData["SortColumn"];
+    bool SortAscending = (bool)ViewData["SortAscending"];
+
+    // For pagination
+    int CurrentDataIndex = (int)ViewData["CurrentDataIndex"];
+    int TotalDataCount = (int)ViewData["TotalDataCount"];
+
+    EmployeeDM emp = Model;
+}
+
+<form asp-action="Edit" method="post" style="margin-bottom: 40px;">
+    <div class="form-group">
+        <label asp-for="@emp.PayrollNumber"></label>
+        <input asp-for="@emp.PayrollNumber" class="form-control" readonly="readonly"/>
+        <span asp-validation-for="@emp.PayrollNumber" />
+    </div>
+    <div class="form-group">
+        <label asp-for="@emp.Forename"></label>
+        <input asp-for="@emp.Forename" class="form-control" />
+        <span asp-validation-for="@emp.Forename" />
+    </div>
+    <div class="form-group">
+        <label asp-for="@emp.Surname"></label>
+        <input asp-for="@emp.Surname" class="form-control" />
+        <span asp-validation-for="@emp.Surname" />
+    </div>
+    <div class="form-group">
+        <label asp-for="@emp.DateOfBirth"></label>
+        <input asp-for="@emp.DateOfBirth" class="form-control" />
+        <span asp-validation-for="@emp.DateOfBirth" />
+    </div>
+    <div class="form-group">
+        <label asp-for="@emp.Telephone"></label>
+        <input asp-for="@emp.Telephone" class="form-control" />
+        <span asp-validation-for="@emp.Telephone" />
+    </div>
+    <div class="form-group">
+        <label asp-for="@emp.Mobile"></label>
+        <input asp-for="@emp.Mobile" class="form-control" />
+        <span asp-validation-for="@emp.Mobile" />
+    </div>
+    <div class="form-group">
+        <label asp-for="@emp.Address"></label>
+        <input asp-for="@emp.Address" class="form-control" />
+        <span asp-validation-for="@emp.Address" />
+    </div>
+    <div class="form-group">
+        <label asp-for="@emp.Address2"></label>
+        <input asp-for="@emp.Address2" class="form-control" />
+        <span asp-validation-for="@emp.Address2" />
+    </div>
+    <div class="form-group">
+        <label asp-for="@emp.Postcode"></label>
+        <input asp-for="@emp.Postcode" class="form-control" />
+        <span asp-validation-for="@emp.Postcode" />
+    </div>
+    <div class="form-group">
+        <label asp-for="@emp.EmailHome"></label>
+        <input asp-for="@emp.EmailHome" class="form-control" />
+        <span asp-validation-for="@emp.EmailHome" />
+    </div>
+    <div class="form-group">
+        <label asp-for="@emp.StartDate"></label>
+        <input asp-for="@emp.StartDate" class="form-control" />
+        <span asp-validation-for="@emp.StartDate" />
+    </div>
+
+    <button type="submit" class="btn btn-primary"
+            asp-route-act="save"
+            asp-route-sVal=@SearchValue
+            asp-route-sCol="EmailHome"
+            asp-route-sAsc=@SortAscending
+            asp-route-cIdx=@CurrentDataIndex
+            asp-route-model=emp>
+        Save
+    </button>
+
+    <button type="submit" class="btn btn-secondary"
+            asp-route-act="cancel"
+            asp-route-sVal=@SearchValue
+            asp-route-sCol="EmailHome"
+            asp-route-sAsc=@SortAscending
+            asp-route-cIdx=@CurrentDataIndex>
+        Cancel
+    </button>
+
+    <button type="submit" class="btn btn-danger"
+            asp-route-act="delete"
+            asp-route-sVal=@SearchValue
+            asp-route-sCol="EmailHome"
+            asp-route-sAsc=@SortAscending
+            asp-route-cIdx=@CurrentDataIndex>
+        Delete
+    </button>
+</form>
+}
