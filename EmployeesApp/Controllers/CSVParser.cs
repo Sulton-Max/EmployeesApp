@@ -50,13 +50,15 @@ namespace EmployeesApp.Controllers
                         if (cvsm.IsValid())
                             employees.Add(new EmployeeDM(cvsm));
 
+                    fileStream.Close();
+                    File.Delete(path);
                     return employees;
                 }
 
                 // Delete the file after processing
-                File.Delete(path);
             }
 
+            File.Delete(path);
             return null;
         }
     }
