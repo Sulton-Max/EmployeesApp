@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -140,6 +141,9 @@ namespace EmployeesApp.Models
             string DateCorrector(string dateStr)
             {
                 string[] date = dateStr.Split('/');
+                if (!int.TryParse(date[0], out int test))
+                    throw new FormatException("Data format is not acceptable");
+
                 if (int.Parse(date[0]) > 12)
                 {
                     var temp = date[0];
@@ -151,8 +155,15 @@ namespace EmployeesApp.Models
                 return dateStr;
             }
 
-            DateOfBirth = DateCorrector(DateOfBirth);
-            StartDate = DateCorrector(StartDate);
+            try
+            {
+                DateOfBirth = DateCorrector(DateOfBirth);
+                StartDate = DateCorrector(StartDate);
+            }
+            catch(Exception)
+            {
+                return false;
+            }
 
             return (!string.IsNullOrWhiteSpace(PayrollNumber) &&
                 !string.IsNullOrWhiteSpace(Forename) &&
@@ -243,6 +254,17 @@ namespace EmployeesApp.Models
         {
             string connString = @"Server=WIN-S2HR7LHV4GP\SOFT_SERVER;Database=Employees;Trusted_Connection=TRUE";
             builder.UseSqlServer(connString);
+        }
+    }
+
+    public class EmployeeComparer : IComparer<string>
+    {
+        public int Compare([AllowNull] string x, [AllowNull] string y)
+        {
+            if (int.TryParse(x, out int xInt) && int.TryParse(y, out int yInt))
+                return xInt.CompareTo(yInt);
+            else
+                return x.CompareTo(y);
         }
     }
 }

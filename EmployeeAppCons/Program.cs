@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -45,26 +46,43 @@ namespace EmployeeAppCons
 
             List<Data> data = new List<Data>
             { 
-                new Data(12),
-                new Data(1),
-                new Data(122),
-                new Data(89),
-                new Data(23),
-                new Data(202),
-                new Data(77),
-                new Data(45),
-                new Data(15)
+                new Data("12"),
+                new Data("1"),
+                new Data("122"),
+                new Data("89"),
+                new Data("23"),
+                new Data("AB"),
+                new Data("STN"),
+                new Data("45"),
+                new Data("15")
             };
-            data = data.OrderBy(data => data.Value).ToList();
+            data = data.OrderBy(data => data.Value, new DataComparer()).ToList();
+
+            data = data.Take(3).ToList();
             foreach(var d in data)
-                Console.WriteLine(d);
+                Console.WriteLine(d.Value);
         }
 
         public class Data
         {
-            public int Value { get; set; }
-            public Data(int val) => Value = val;
+            public string Value { get; set; }
+            public Data(string val) => Value = val;
+
+            public int GetId()
+            {
+                return int.Parse(Value);
+            }
         }
 
+        public class DataComparer : IComparer<string>
+        {
+            public int Compare([AllowNull] string x, [AllowNull] string y)
+            {
+                if (int.TryParse(x, out int xInt) && int.TryParse(y, out int yInt))
+                    return xInt.CompareTo(yInt);
+                else
+                    return x.CompareTo(y);
+            }
+        }
     }
 }

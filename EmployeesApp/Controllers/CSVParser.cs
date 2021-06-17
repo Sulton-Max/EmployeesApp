@@ -39,7 +39,7 @@ namespace EmployeesApp.Controllers
                 var employeesCSVMs = records?.ToList();
 
                 // Check if parsing was successfull and are there any objects parsed
-                if (employeesCSVMs != null)
+                if (employeesCSVMs != null && employeesCSVMs.Count() > 1)
                 {
                     // Remove the header object
                     employeesCSVMs.RemoveAt(0);

@@ -15,6 +15,7 @@
     EmployeeDM emp = null;
     if ((bool)ViewData["IsEditMode"] == true)
         emp = ViewData["Employee"] as EmployeeDM;
+
 }
 
 @await Html.PartialAsync("_ValidationScriptsPartial")
@@ -122,6 +123,9 @@
 
 }
 
+<!-- SEARCH AREA -->
+@await Html.PartialAsync("_Search", new SearchModel(SearchValue)) 
+
 <!-- EMPLOYEE LIST AREA -->
 <table class="table">
     <thead>
@@ -185,11 +189,11 @@
                 <td>
                     <form method="get" asp-action="Edit"
                           asp-route-id="@employee.PayrollNumber"
-                          asp-route-sval=@SearchValue
-                          asp-route-scol=@SortColumn
-                          asp-route-sasc=@SortAscending
+                          asp-route-sVal=@SearchValue
+                          asp-route-sCol=@SortColumn
+                          asp-route-sAsc=@SortAscending
                           asp-route-cIdx=@CurrentDataIndex>
-                        <button type="submit" class="btn btn-primary">Eidt</button>
+                        <button type="submit" class="btn btn-primary">Edit</button>
                     </form>
                 </td>
             </tr>
@@ -209,37 +213,40 @@
 </table>
 
 <!-- PAGINATION AREA -->
-<div container style="display:flex; flex-direction:row; margin-bottom: 40px;">
-
-    @if ((CurrentDataIndex - 10) > 0)
-    {
-        <button class="btn btn-primary" asp-action="Pageniation"
-                asp-route-act="Prev"
+<form asp-action="Pagination" method="post" style="margin-bottom: 40px;">
+    <div container style="display:flex; flex-direction:row;">
+        @if ((CurrentDataIndex - 10) > 0)
+        {
+        <button class="btn btn-primary" type="submit"
+                asp-action="Pagination"
+                asp-route-nxt=@false
                 asp-route-sVal=@SearchValue
                 asp-route-sCol=@SortColumn
                 asp-route-sAsc=@SortAscending
                 asp-route-cIdx=@CurrentDataIndex>
             Prev
         </button>
-    }
-    else
-    {
-        <button class="btn btn-primary" disabled>Prev</button>
-    }
-    <h5 style="margin: 20px;">@CurrentDataIndex/@TotalDataCount</h5>
-    @if ((CurrentDataIndex + 10) < TotalDataCount)
-    {
-        <button class="btn btn-primary" asp-action="Pagination"
-                asp-route-act ="Next"
-                asp-route-sVal=@SearchValue
-                asp-route-sCol=@SortColumn
-                asp-route-sAsc=@SortAscending
-                asp-route-cIdx=@CurrentDataIndex>
-            Next
-        </button>
-    }
-    else
-    {
-        <button class="btn btn-primary" disabled>Next</button>
-    }
-</div>
+        }
+        else
+        {
+            <button class="btn btn-primary" disabled>Prev</button>
+        }
+        <h5 style="margin: 20px;">@CurrentDataIndex/@TotalDataCount</h5>
+        @if (CurrentDataIndex < TotalDataCount)
+        {
+            <button class="btn btn-primary" type="submit"
+                    asp-action="Pagination"
+                    asp-route-nxt=@true
+                    asp-route-sVal=@SearchValue
+                    asp-route-sCol=@SortColumn
+                    asp-route-sAsc=@SortAscending
+                    asp-route-cIdx=@CurrentDataIndex>
+                Next
+            </button>
+        }
+        else
+        {
+            <button class="btn btn-primary" disabled>Next</button>
+        }
+    </div>
+</form>

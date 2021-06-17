@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -28,7 +29,15 @@ namespace EmployeesApp.Controllers
         public IActionResult Index()
         {
             // Show the whole list
-            List<EmployeeVM> employees = GetData("", "", true, 10);
+            List<EmployeeVM> employees = GetData("", "", false, 10);
+            return View(employees);
+        }
+
+        [HttpPost]
+        public IActionResult Index(SearchModel sMod)
+        {
+            // Show the whole list
+            List<EmployeeVM> employees = GetData(sMod.SearchValue, "", false, 10);
             return View(employees);
         }
 
@@ -79,8 +88,7 @@ namespace EmployeesApp.Controllers
             ViewData["Employee"] = employee;
 
             // Show the whole list
-            List<EmployeeVM> employees = GetData(sVal, sCol, sAsc, cIdx);
-            SetViewDataFunction(sVal, sCol, sAsc, employees.Count(), cIdx);
+            List<EmployeeVM> employees = GetData(sVal, sCol, sAsc, cIdx, true);
             return View("Index", employees);
         }
 
@@ -110,7 +118,6 @@ namespace EmployeesApp.Controllers
 
             // Show the whole list
             List<EmployeeVM> employees = GetData(sVal, sCol, sAsc, cIdx);
-            SetViewDataFunction(sVal, sCol, sAsc, employees.Count(), cIdx);
             return View("Index", employees);
         }
 
@@ -119,29 +126,38 @@ namespace EmployeesApp.Controllers
         {
             // Show the whole list
             List<EmployeeVM> employees = GetData(sVal, sCol, sAsc, cIdx);
-            SetViewDataFunction(sVal, sCol, sAsc, employees.Count(), cIdx);
             return View("Index", employees);
         }
 
-        [HttpGet]
-        public IActionResult Pagination(string act, string sVal, string sCol, bool sAsc, int cIdx)
+        [HttpPost]
+        public IActionResult Pagination(bool nxt, string sVal, string sCol, bool sAsc, int cIdx)
         {
-            List<EmployeeVM> employees = GetDataSortedByKey(sVal);  // Get all searched data sorted by key
-            employees = PaginationFunction(cIdx, employees);        // Get the data with current Index                         
-            employees = SortingFunction(sCol, sAsc, employees);     // Sort data by column
+            if (nxt)
+                cIdx += 10;
+            else
+                cIdx -= 10;
 
-            SetViewDataFunction(sVal, sCol, sAsc, employees.Count(), cIdx);
-            return View("Index");
+            List<EmployeeVM> employees = GetData(sVal, sCol, sAsc, cIdx);
+            return View("Index", employees);
+
+            //List<EmployeeVM> employees = GetDataSortedByKey(sVal);  // Get all searched data sorted by key
+            //employees = PaginationFunction(cIdx, employees);        // Get the data with current Index                         
+            //employees = SortingFunction(sCol, sAsc, employees);     // Sort data by column
+
+            //SetViewDataFunction(sVal, sCol, sAsc, employees.Count(), cIdx);
+            //return View("Index");
         }
 
-        public List<EmployeeVM> GetData(string sVal, string sCol, bool sAsc, int cIdx)
+        public List<EmployeeVM> GetData(string sVal, string sCol, bool sAsc, int cIdx, bool IsEditMode = false)
         {
             if (cIdx == 0)
                 cIdx = 10;
             List<EmployeeVM> employees = GetDataSortedByKey(sVal);  // Get all searched data sorted by key
+            int tCnt = employees.Count();
             employees = PaginationFunction(cIdx, employees);        // Get the data with current Index                         
-            employees = SortingFunction(sCol, sAsc, employees);     // Sort data by column
-            SetViewDataFunction(sVal, sCol, sAsc, employees.Count(), ((employees.Count > 10) ? cIdx : employees.Count()));
+            employees = SortingFunction(sCol, !sAsc, employees);     // Sort data by column
+            cIdx = (tCnt > 10) ? ((employees.Count == 10) ? ((cIdx < 10) ? employees.Count() : cIdx) : tCnt) : tCnt;
+            SetViewDataFunction(sVal, sCol, !sAsc, tCnt, cIdx, IsEditMode);
             return employees;
         }
 
@@ -150,13 +166,16 @@ namespace EmployeesApp.Controllers
             // Get searched data if search value is not null
             List<EmployeeVM> employees = _empAM.GetAll();
             if (sVal != null && sVal != string.Empty)
+            {
+                sVal = sVal.ToLower();
                 employees = _empAM.GetAll().Where(employee =>
                     (employee.PayrollNumber.ToLower().Contains(sVal) ||
                         employee.Forename.ToLower().Contains(sVal) ||
                         employee.Surname.ToLower().Contains(sVal) ||
                         employee.Telephone.ToLower().Contains(sVal))).ToList();
+            }
             // Get data sorted by key
-            employees = employees.OrderBy(employee => employee.PayrollNumber).ToList();
+            employees = employees.OrderBy(employee => employee.PayrollNumber, new EmployeeComparer()).ToList();
             return employees;
         }
 
@@ -170,26 +189,26 @@ namespace EmployeesApp.Controllers
             {
                 employees = sCol.ToLower() switch
                 {
-                    "payrollnumber" => employees.OrderBy(employee => employee.PayrollNumber).ToList(),
-                    "forename" => employees.OrderBy(employee => employee.Forename).ToList(),
-                    "surname" => employees.OrderBy(employee => employee.Surname).ToList(),
+                    "payrollnumber" => employees.OrderBy(employee => employee.PayrollNumber, new EmployeeComparer()).ToList(),
+                    "forename" => employees.OrderBy(employee => employee.Forename, new EmployeeComparer()).ToList(),
+                    "surname" => employees.OrderBy(employee => employee.Surname, new EmployeeComparer()).ToList(),
                     "dateofbirth" => employees.OrderBy(employee => employee.DateOfBirth).ToList(),
-                    "telephone" => employees.OrderBy(employee => employee.Telephone).ToList(),
-                    "emailhome" => employees.OrderBy(employee => employee.EmailHome).ToList(),
-                    _ => employees.OrderBy(employee => employee.PayrollNumber).ToList()
+                    "telephone" => employees.OrderBy(employee => employee.Telephone, new EmployeeComparer()).ToList(),
+                    "emailhome" => employees.OrderBy(employee => employee.EmailHome, new EmployeeComparer()).ToList(),
+                    _ => employees.OrderBy(employee => employee.PayrollNumber, new EmployeeComparer()).ToList()
                 };
             }
             else
             {
                 employees = sCol.ToLower() switch
                 {
-                    "payrollnumber" => employees.OrderByDescending(employee => employee.PayrollNumber).ToList(),
-                    "forename" => employees.OrderByDescending(employee => employee.Forename).ToList(),
-                    "surname" => employees.OrderByDescending(employee => employee.Surname).ToList(),
+                    "payrollnumber" => employees.OrderByDescending(employee => employee.PayrollNumber, new EmployeeComparer()).ToList(),
+                    "forename" => employees.OrderByDescending(employee => employee.Forename, new EmployeeComparer()).ToList(),
+                    "surname" => employees.OrderByDescending(employee => employee.Surname, new EmployeeComparer()).ToList(),
                     "dateofbirth" => employees.OrderByDescending(employee => employee.DateOfBirth).ToList(),
-                    "telephone" => employees.OrderByDescending(employee => employee.Telephone).ToList(),
-                    "emailhome" => employees.OrderByDescending(employee => employee.EmailHome).ToList(),
-                    _ => employees.OrderByDescending(employee => employee.PayrollNumber).ToList()
+                    "telephone" => employees.OrderByDescending(employee => employee.Telephone, new EmployeeComparer()).ToList(),
+                    "emailhome" => employees.OrderByDescending(employee => employee.EmailHome, new EmployeeComparer()).ToList(),
+                    _ => employees.OrderByDescending(employee => employee.PayrollNumber, new EmployeeComparer()).ToList()
                 };
             }
             return employees;
@@ -198,7 +217,7 @@ namespace EmployeesApp.Controllers
         private List<EmployeeVM> PaginationFunction(int cIdx, List<EmployeeVM> employees)
         {
             int skippedCount = (cIdx > 10) ? (cIdx - 10) : 0;
-            employees.Skip(skippedCount).Take(10);
+            employees = employees.Skip(skippedCount).Take(10).ToList();
             return employees;
         }
 

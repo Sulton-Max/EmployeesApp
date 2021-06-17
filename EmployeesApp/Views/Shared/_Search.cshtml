@@ -1,0 +1,10 @@
+﻿@model SearchModel
+
+<form asp-action="Index" method="post" style="margin-bottom: 40px;">
+    <div class="form-group">
+        <label asp-for="@Model.SearchValue"></label>
+        <input asp-for="@Model.SearchValue" class="form-control"/>
+        <input id="sVal" type="hidden" value="@Model.SearchValue"/>
+    </div>
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
